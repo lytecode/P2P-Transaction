@@ -28,6 +28,22 @@ const validateRegister = data => {
   return Joi.validate(data, schema);
 };
 
+const validateLogin = data => {
+  const schema = {
+    walletId: Joi.string()
+      .min(12)
+      .max(12)
+      .required(),
+    pin: Joi.string()
+      .min(4)
+      .max(4)
+      .required()
+  };
+
+  return Joi.validate(data, schema);
+};
+
 module.exports = {
-  validateRegister
+  validateRegister,
+  validateLogin
 };
