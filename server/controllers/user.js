@@ -1,0 +1,57 @@
+const User = require("../models/user");
+const bcrypt = require("bcryptjs");
+//const jwt = require("jsonwebtoken");
+const randomize = require("randomatic");
+const { validateRegister, validateLogin } = require("../middleware/validator");
+const mailService = require("../services/emailService");
+
+module.exports = {
+  register: async (req, res, next) => {
+    const { name, email, phoneNumber } = req.body;
+    const walletId = randomize("0Aa", 12);
+    const pin = randomize("A0", 4);
+
+    //append walletId and pin to req.body
+    req.body.walletId = walletId;
+    req.body.pin = pin;
+
+    //validate user request
+    const { error } = validateRegister(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
+    //     //check if the user already exist
+    const userExist = await User.findOne({ walletId });
+    if (userExist)
+      return res
+        .status(400)
+        .json({ message: "User already register, please login" });
+
+    //salt and hash the pin
+    const salt = await bcrypt.genSalt(10);
+    const hashedPin = await bcrypt.hash(pin, salt);
+
+    //create a new User and save
+    const newUser = await User.create({
+      walletId,
+      name,
+      email,
+      phoneNumber,
+      pin: hashedPin
+    });
+
+    try {
+      //send mail to the user containing walletId and pin for login
+      const userDetails = { name, walletId, pin, email };
+      mailService.accountCreationMail(userDetails);
+
+      res.status(201).json({
+        message: "new user created",
+        user: { id: newUser._id, name: newUser.name }
+      });
+    } catch (err) {
+      return res.status(500).json({ message: `Error while creating account` });
+    }
+  }
+};
