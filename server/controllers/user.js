@@ -1,9 +1,10 @@
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
-//const jwt = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
 const randomize = require("randomatic");
 const { validateRegister, validateLogin } = require("../middleware/validator");
 const mailService = require("../services/emailService");
+const config = require("../config/index");
 
 module.exports = {
   register: async (req, res, next) => {
@@ -53,5 +54,39 @@ module.exports = {
     } catch (err) {
       return res.status(500).json({ message: `Error while creating account` });
     }
+  },
+
+  login: async (req, res, next) => {
+    const { walletId, password } = req.body;
+
+    //validate user request
+    const { error } = validateLogin(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
+    //check if user exist
+    const user = await User.findOne({ walletId });
+    if (!user) return res.status(400).json({ message: "Invalid WalletID " });
+
+    //compare the password with that in the db
+    const isMatch = await bcrypt.compare(password, user.pin);
+    if (!isMatch) return res.status(400).json({ message: "Invalid password" });
+
+    //sign a JWT token
+
+    const token = jwt.sign(
+      { id: user._id, name: user.name },
+      config.JWT_SECRET,
+      { expiresIn: config.TOKEN_EXPIRESIN }
+    );
+
+    res
+      .header("auth-token", token)
+      .status(200)
+      .json({
+        message: "Successfully logged in",
+        user: { id: user._id, name: user.name }
+      });
   }
 };
