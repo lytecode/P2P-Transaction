@@ -34,7 +34,7 @@ const validateLogin = data => {
       .min(12)
       .max(12)
       .required(),
-    pin: Joi.string()
+    password: Joi.string()
       .min(4)
       .max(4)
       .required()
