@@ -22,6 +22,10 @@ const validateRegister = data => {
     pin: Joi.string()
       .min(4)
       .max(4)
+      .required(),
+    password: Joi.string()
+      .min(6)
+      .max(12)
       .required()
   };
 
@@ -35,8 +39,8 @@ const validateLogin = data => {
       .max(12)
       .required(),
     password: Joi.string()
-      .min(4)
-      .max(4)
+      .min(6)
+      .max(12)
       .required()
   };
 

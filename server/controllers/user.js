@@ -8,8 +8,8 @@ const config = require("../config/index");
 
 module.exports = {
   register: async (req, res, next) => {
-    const { name, email, phoneNumber } = req.body;
-    const walletId = randomize("0Aa", 12);
+    const { name, email, phoneNumber, password } = req.body;
+    const walletId = randomize("0A", 12);
     const pin = randomize("A0", 4);
 
     //append walletId and pin to req.body
@@ -29,20 +29,23 @@ module.exports = {
         .status(400)
         .json({ message: "User already register, please login" });
 
-    //salt and hash the pin
+    //salt and hash pin and password
     const salt = await bcrypt.genSalt(10);
     const hashedPin = await bcrypt.hash(pin, salt);
-
-    //create a new User and save
-    const newUser = await User.create({
-      walletId,
-      name,
-      email,
-      phoneNumber,
-      pin: hashedPin
-    });
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     try {
+      //create a new User and save
+      const newUser = await User.create({
+        walletId,
+        name,
+        email,
+        phoneNumber,
+        pin: hashedPin,
+        password: hashedPassword
+      });
+
+      // try {
       //send mail to the user containing walletId and pin for login
       const userDetails = { name, walletId, pin, email };
       mailService.accountCreationMail(userDetails);
@@ -52,7 +55,9 @@ module.exports = {
         user: { id: newUser._id, name: newUser.name }
       });
     } catch (err) {
-      return res.status(500).json({ message: `Error while creating account` });
+      return res
+        .status(500)
+        .json({ message: `Error while creating account: ${err}` });
     }
   },
 
@@ -67,11 +72,13 @@ module.exports = {
 
     //check if user exist
     const user = await User.findOne({ walletId });
-    if (!user) return res.status(400).json({ message: "Invalid WalletID " });
+    if (!user)
+      return res.status(400).json({ message: "Invalid walletId or password" });
 
     //compare the password with that in the db
-    const isMatch = await bcrypt.compare(password, user.pin);
-    if (!isMatch) return res.status(400).json({ message: "Invalid password" });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid walletId or password" });
 
     //sign a JWT token
 
