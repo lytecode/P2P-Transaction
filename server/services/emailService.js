@@ -16,9 +16,9 @@ module.exports = {
       subject: "Your Account has been successfully created",
       text: `Hello ${
         user.name
-      },\n\nHere is your login credentials, please keep them safe.\n\n
+      },\n\nHere is your AjoCard credentials, please keep them safe.\n\n
             Wallet Id: ${user.walletId} \n
-            Password: ${user.pin}
+            Pin: ${user.pin}
             `
     };
     await mailer.sendMail(mailOptions, (err, response) => {
