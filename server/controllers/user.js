@@ -72,11 +72,13 @@ module.exports = {
 
     //check if user exist
     const user = await User.findOne({ walletId });
-    if (!user) return res.status(400).json({ message: "Invalid WalletID " });
+    if (!user)
+      return res.status(400).json({ message: "Invalid walletId or password" });
 
     //compare the password with that in the db
-    const isMatch = await bcrypt.compare(password, user.pin);
-    if (!isMatch) return res.status(400).json({ message: "Invalid password" });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid walletId or password" });
 
     //sign a JWT token
 
