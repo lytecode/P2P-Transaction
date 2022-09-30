@@ -15,7 +15,7 @@
   "author": "Mbonu Chukwudinma",
   "license": "MIT",
   "dependencies": {
-    "@hapi/joi": "^15.1.0",
+    "@hapi/joi": "^15.1.1",
     "africastalking": "^0.4.0",
     "bcryptjs": "^2.4.3",
     "dotenv": "^8.0.0",
